@@ -7,6 +7,7 @@ import '../screens/settings_screen.dart';
 import '../utils/helpers.dart';
 import '../widgets/intake_rate_chart.dart';
 import '../widgets/pill_edit_dialog.dart';
+import '../theme/app_colors.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -62,7 +63,7 @@ class HomeScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -80,7 +81,7 @@ class HomeScreen extends StatelessWidget {
                           Text(
                             '${(intakeRate * 100).toStringAsFixed(0)}%',
                             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color: AppColors.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),

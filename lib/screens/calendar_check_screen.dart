@@ -19,7 +19,51 @@ class _CalendarCheckScreenState extends State<CalendarCheckScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('달력 & 체크'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.chevron_left),
+              onPressed: () {
+                setState(() {
+                  _selectedDate = DateTime(
+                    _selectedDate.year,
+                    _selectedDate.month - 1,
+                  );
+                });
+              },
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            GestureDetector(
+              onTap: () => _showYearMonthPicker(context),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${_selectedDate.year}년 ${_selectedDate.month}월',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_drop_down, size: 20),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              onPressed: () {
+                setState(() {
+                  _selectedDate = DateTime(
+                    _selectedDate.year,
+                    _selectedDate.month + 1,
+                  );
+                });
+              },
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
         leading: IconButton(
           icon: const Icon(Icons.home),
           onPressed: () {
@@ -30,46 +74,37 @@ class _CalendarCheckScreenState extends State<CalendarCheckScreen> {
       body: Column(
         children: [
           // 달력 영역
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // 월 네비게이션
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.chevron_left),
-                      onPressed: () {
-                        setState(() {
-                          _selectedDate = DateTime(
-                            _selectedDate.year,
-                            _selectedDate.month - 1,
-                          );
-                        });
-                      },
-                    ),
-                    Text(
-                      '${_selectedDate.year}년 ${_selectedDate.month}월',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right),
-                      onPressed: () {
-                        setState(() {
-                          _selectedDate = DateTime(
-                            _selectedDate.year,
-                            _selectedDate.month + 1,
-                          );
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // 간단한 달력 뷰
-                _buildSimpleCalendar(),
-              ],
+          GestureDetector(
+            onHorizontalDragEnd: (details) {
+              // 스와이프 속도와 방향 감지
+              if (details.primaryVelocity != null) {
+                if (details.primaryVelocity! > 0) {
+                  // 오른쪽으로 스와이프 (이전 달)
+                  setState(() {
+                    _selectedDate = DateTime(
+                      _selectedDate.year,
+                      _selectedDate.month - 1,
+                    );
+                  });
+                } else if (details.primaryVelocity! < 0) {
+                  // 왼쪽으로 스와이프 (다음 달)
+                  setState(() {
+                    _selectedDate = DateTime(
+                      _selectedDate.year,
+                      _selectedDate.month + 1,
+                    );
+                  });
+                }
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // 간단한 달력 뷰
+                  _buildSimpleCalendar(),
+                ],
+              ),
             ),
           ),
           const Divider(height: 1),
@@ -155,14 +190,10 @@ class _CalendarCheckScreenState extends State<CalendarCheckScreen> {
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? Theme.of(context).colorScheme.primaryContainer
-                                : Colors.transparent,
+                                : isToday
+                                    ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
+                                    : Colors.transparent,
                             shape: BoxShape.circle,
-                            border: isToday
-                                ? Border.all(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    width: 2,
-                                  )
-                                : null,
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -176,24 +207,25 @@ class _CalendarCheckScreenState extends State<CalendarCheckScreen> {
                                       : null,
                                 ),
                               ),
-                              if (checkedPillColors.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 2),
-                                  child: Wrap(
-                                    spacing: 2,
-                                    alignment: WrapAlignment.center,
-                                    children: checkedPillColors.map((colorHex) {
-                                      return Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: BoxDecoration(
-                                          color: _getColorFromHex(colorHex),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: checkedPillColors.isNotEmpty
+                                    ? Wrap(
+                                        spacing: 2,
+                                        alignment: WrapAlignment.center,
+                                        children: checkedPillColors.map((colorHex) {
+                                          return Container(
+                                            width: 6,
+                                            height: 6,
+                                            decoration: BoxDecoration(
+                                              color: _getColorFromHex(colorHex),
+                                              shape: BoxShape.circle,
+                                            ),
+                                          );
+                                        }).toList(),
+                                      )
+                                    : const SizedBox(height: 6), // 동그라미가 없어도 공간 확보
+                              ),
                             ],
                           ),
                         ),
@@ -360,5 +392,182 @@ class _CalendarCheckScreenState extends State<CalendarCheckScreen> {
     }
   }
 
+  void _showYearMonthPicker(BuildContext context) {
+    final currentYear = _selectedDate.year;
+    final currentMonth = _selectedDate.month;
+    
+    // 년도 범위 설정 (현재 년도 기준 ±50년)
+    final now = DateTime.now();
+    final minYear = now.year - 50;
+    final maxYear = now.year + 50;
+    final years = List.generate(maxYear - minYear + 1, (index) => minYear + index);
+    final months = List.generate(12, (index) => index + 1);
+    
+    int selectedYear = currentYear;
+    int selectedMonth = currentMonth;
+    
+    final FixedExtentScrollController yearController = FixedExtentScrollController(
+      initialItem: years.indexOf(currentYear),
+    );
+    final FixedExtentScrollController monthController = FixedExtentScrollController(
+      initialItem: currentMonth - 1,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Dialog(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 헤더
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '년월 선택',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24),
+                // 스크롤 선택 영역
+                Expanded(
+                  child: Row(
+                    children: [
+                      // 년도 선택 휠
+                      Expanded(
+                        child: Column(
+                          children: [
+                            
+                            const SizedBox(height: 8),
+                            Expanded(
+                              child: ListWheelScrollView.useDelegate(
+                                controller: yearController,
+                                itemExtent: 50,
+                                physics: const FixedExtentScrollPhysics(),
+                                onSelectedItemChanged: (index) {
+                                  setDialogState(() {
+                                    selectedYear = years[index];
+                                  });
+                                },
+                                childDelegate: ListWheelChildBuilderDelegate(
+                                  builder: (context, index) {
+                                    final year = years[index];
+                                    final isSelected = year == selectedYear;
+                                    return Center(
+                                      child: Text(
+                                        '$year년',
+                                        style: TextStyle(
+                                          fontSize: isSelected ? 20 : 16,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                          color: isSelected
+                                              ? Theme.of(context).colorScheme.primary
+                                              : Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  childCount: years.length,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // 월 선택 휠
+                      Expanded(
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 8),
+                            Expanded(
+                              child: ListWheelScrollView.useDelegate(
+                                controller: monthController,
+                                itemExtent: 50,
+                                physics: const FixedExtentScrollPhysics(),
+                                onSelectedItemChanged: (index) {
+                                  setDialogState(() {
+                                    selectedMonth = months[index];
+                                  });
+                                },
+                                childDelegate: ListWheelChildBuilderDelegate(
+                                  builder: (context, index) {
+                                    final month = months[index];
+                                    final isSelected = month == selectedMonth;
+                                    return Center(
+                                      child: Text(
+                                        '$month월',
+                                        style: TextStyle(
+                                          fontSize: isSelected ? 20 : 16,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                          color: isSelected
+                                              ? Theme.of(context).colorScheme.primary
+                                              : Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  childCount: months.length,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // 선택된 년월 표시
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '$selectedYear년 $selectedMonth월',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // 버튼
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('취소'),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _selectedDate = DateTime(selectedYear, selectedMonth);
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: const Text('확인'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 

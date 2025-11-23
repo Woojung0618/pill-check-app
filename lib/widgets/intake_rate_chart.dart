@@ -48,58 +48,61 @@ class IntakeRateChart extends StatelessWidget {
               final isToday = DateHelper.isToday(date);
 
               return Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      DateHelper.formatDate(date).split('-')[2],
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 100,
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Stack(
-                            alignment: Alignment.bottomCenter,
-                            children: [
-                              Container(
-                                width: double.infinity,
-                                height: constraints.maxHeight,
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                              FractionallySizedBox(
-                                heightFactor: rate,
-                                child: Container(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        DateHelper.formatDate(date).split('-')[2],
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 100,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Stack(
+                              alignment: Alignment.bottomCenter,
+                              children: [
+                                Container(
                                   width: double.infinity,
+                                  height: constraints.maxHeight,
                                   decoration: BoxDecoration(
-                                    color: isToday
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .primaryContainer,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                 ),
-                              ),
-                            ],
-                          );
-                        },
+                                FractionallySizedBox(
+                                  heightFactor: rate,
+                                  child: Container(
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: isToday
+                                          ? Theme.of(context).colorScheme.primary
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .primaryContainer,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${(rate * 100).toStringAsFixed(0)}%',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: 10,
-                          ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        '${(rate * 100).toStringAsFixed(0)}%',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 10,
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }).toList(),

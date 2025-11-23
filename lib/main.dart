@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'services/local_storage_service.dart';
 import 'providers/pill_provider.dart';
 import 'screens/home_screen.dart';
+import 'theme/app_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
+            seedColor: AppColors.primary,
             brightness: Brightness.light,
           ),
           useMaterial3: true,
