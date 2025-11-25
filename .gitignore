@@ -41,3 +41,43 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android 관련 (android/.gitignore에도 정의됨)
+android/.gradle/
+android/local.properties
+android/app/src/main/java/
+android/gradle/wrapper/gradle-wrapper.jar
+android/gradlew
+android/gradlew.bat
+android/*.iml
+
+# iOS 관련 (ios/.gitignore에도 정의됨)
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Runner.xcodeproj/xcuserdata/
+ios/Runner.xcworkspace/xcuserdata/
+ios/.DS_Store
+
+# macOS 관련
+macos/Flutter/ephemeral/
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Windows 관련
+windows/flutter/ephemeral/
+
+# Linux 관련
+linux/flutter/ephemeral/
+
+# Web 관련
+web/
+
+# 로컬 설정 파일
+*.local
+
+# 참고: 다음 파일들은 커밋해야 합니다
+# - *.g.dart (Hive TypeAdapter 생성 파일)
+# - pubspec.lock (의존성 버전 고정)
+# - Podfile.lock (iOS 의존성 버전 고정)

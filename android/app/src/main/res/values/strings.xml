@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pill Check App</string>
+    <string name="widget_description">영양제 복용 체크 위젯</string>
+</resources>
+

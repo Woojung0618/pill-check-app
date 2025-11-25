@@ -47,6 +47,9 @@ dependencies:
   
   # UUID 생성
   uuid: ^4.3.3
+  
+  # 홈 위젯
+  home_widget: ^0.8.1
 
 dev_dependencies:
   flutter_test:

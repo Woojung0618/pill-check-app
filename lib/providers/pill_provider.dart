@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../models/pill.dart';
 import '../models/intake_record.dart';
 import '../services/local_storage_service.dart';
+import '../services/home_widget_service.dart';
 import '../utils/helpers.dart';
 
 class PillProvider with ChangeNotifier {
@@ -107,6 +108,16 @@ class PillProvider with ChangeNotifier {
     }
   }
 
+  // 데이터 로드 후 위젯 업데이트
+  Future<void> loadDataAndUpdateWidget() async {
+    await loadData();
+    try {
+      await HomeWidgetService.updateWidget();
+    } catch (e) {
+      debugPrint('위젯 업데이트 실패: $e');
+    }
+  }
+
   @override
   void dispose() {
     _pillsSubscription?.cancel();
@@ -142,6 +153,12 @@ class PillProvider with ChangeNotifier {
 
       await LocalStorageService.savePill(pill);
       // _loadData()는 watch를 통해 자동으로 업데이트됨
+      // 위젯 업데이트
+      try {
+        await HomeWidgetService.updateWidget();
+      } catch (e) {
+        debugPrint('위젯 업데이트 실패: $e');
+      }
     } catch (e) {
       debugPrint('영양제 추가 실패: $e');
       rethrow;
@@ -162,6 +179,12 @@ class PillProvider with ChangeNotifier {
       if (index != -1) {
         _pills[index] = updatedPill;
         notifyListeners();
+      }
+      // 위젯 업데이트
+      try {
+        await HomeWidgetService.updateWidget();
+      } catch (e) {
+        debugPrint('위젯 업데이트 실패: $e');
       }
     } catch (e) {
       debugPrint('영양제 수정 실패: $e');
@@ -208,6 +231,12 @@ class PillProvider with ChangeNotifier {
       );
 
       await LocalStorageService.saveIntakeRecord(record);
+      // 위젯 업데이트
+      try {
+        await HomeWidgetService.updateWidget();
+      } catch (e) {
+        debugPrint('위젯 업데이트 실패: $e');
+      }
     } catch (e) {
       debugPrint('복용 기록 추가 실패: $e');
       rethrow;
@@ -218,6 +247,12 @@ class PillProvider with ChangeNotifier {
   Future<void> deleteIntakeRecord(String recordId) async {
     try {
       await LocalStorageService.deleteIntakeRecord(recordId);
+      // 위젯 업데이트
+      try {
+        await HomeWidgetService.updateWidget();
+      } catch (e) {
+        debugPrint('위젯 업데이트 실패: $e');
+      }
     } catch (e) {
       debugPrint('복용 기록 삭제 실패: $e');
       rethrow;
