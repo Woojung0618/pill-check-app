@@ -357,11 +357,11 @@ class _CalendarCheckScreenState extends State<CalendarCheckScreen> {
                     height: 32,
                     decoration: BoxDecoration(
                       color: isChecked
-                          ? Theme.of(context).colorScheme.primary
+                          ? _getColorFromHex(pill.color)
                           : Colors.transparent,
                       border: Border.all(
                         color: isChecked
-                            ? Theme.of(context).colorScheme.primary
+                            ? _getColorFromHex(pill.color)
                             : Colors.grey.shade400,
                         width: 2,
                       ),
@@ -370,7 +370,7 @@ class _CalendarCheckScreenState extends State<CalendarCheckScreen> {
                     child: isChecked
                         ? Icon(
                             Icons.check,
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            color: Colors.white,
                             size: 20,
                           )
                         : null,

@@ -270,11 +270,11 @@
 				9740EEB61CF901F6004384FC /* Run Script */,
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
+				D4E5DD8AC622EDB9DCF72546 /* [CP] Embed Pods Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
-				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
-				D4E5DD8AC622EDB9DCF72546 /* [CP] Embed Pods Frameworks */,
 				B11C48E82ED5E60400B49257 /* Embed Foundation Extensions */,
+				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 			);
 			buildRules = (
 			);

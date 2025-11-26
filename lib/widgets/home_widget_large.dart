@@ -78,29 +78,82 @@ class HomeWidgetLarge extends StatelessWidget {
       future: _getIntakeRecords(pill.id, date),
       builder: (context, snapshot) {
         final records = snapshot.data ?? [];
-        final isChecked = records.isNotEmpty;
+        final pillColor = _getColorFromHex(pill.color);
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: pillColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: pillColor.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
           child: Row(
             children: [
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: Checkbox(
-                  value: isChecked,
-                  onChanged: (value) async {
-                    await HomeWidgetService.togglePillCheck(
-                      pill.id,
-                      value ?? false,
-                    );
-                  },
-                ),
+              // 복용횟수만큼 체크박스 생성
+              ...List.generate(
+                pill.dailyIntakeCount,
+                (index) {
+                  final intakeCount = index + 1;
+                  final isChecked = records.any(
+                    (record) => record.intakeCount == intakeCount,
+                  );
+
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: GestureDetector(
+                      onTap: () async {
+                        if (isChecked) {
+                          // 체크 해제
+                          final record = records.firstWhere(
+                            (r) => r.intakeCount == intakeCount,
+                            orElse: () => records.first,
+                          );
+                          await HomeWidgetService.togglePillCheck(
+                            pill.id,
+                            false,
+                            intakeCount: intakeCount,
+                            recordId: record.id,
+                          );
+                        } else {
+                          // 체크
+                          await HomeWidgetService.togglePillCheck(
+                            pill.id,
+                            true,
+                            intakeCount: intakeCount,
+                          );
+                        }
+                      },
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: isChecked ? pillColor : Colors.transparent,
+                          border: Border.all(
+                            color: isChecked ? pillColor : Colors.grey.shade400,
+                            width: 2,
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: isChecked
+                            ? Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 14,
+                              )
+                            : null,
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 12),
               ColorFiltered(
                 colorFilter: ColorFilter.mode(
-                  _getColorFromHex(pill.color),
+                  pillColor,
                   BlendMode.srcIn,
                 ),
                 child: Image.asset(
@@ -116,13 +169,18 @@ class HomeWidgetLarge extends StatelessWidget {
                   children: [
                     Text(
                       pill.name,
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: pillColor.withOpacity(0.9),
+                            fontWeight: FontWeight.w600,
+                          ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (pill.brand != null)
                       Text(
                         pill.brand!,
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: pillColor.withOpacity(0.7),
+                            ),
                         overflow: TextOverflow.ellipsis,
                       ),
                   ],
@@ -247,12 +305,21 @@ class HomeWidgetLarge extends StatelessWidget {
       final date = today.subtract(Duration(days: i));
       final records = LocalStorageService.getIntakeRecordsByDate(date);
       
-      final totalRequired = pills.fold<int>(
-        0,
-        (sum, pill) => sum + pill.dailyIntakeCount,
-      );
-      final totalChecked = records.length;
-      final rate = totalRequired > 0 ? (totalChecked / totalRequired) : 0.0;
+      // PillProvider.getIntakeRateForDate와 동일한 로직
+      int totalRequired = 0;
+      int totalChecked = 0;
+
+      for (final pill in pills) {
+        totalRequired += pill.dailyIntakeCount;
+        final pillRecords = records
+            .where((record) => record.pillId == pill.id)
+            .toList();
+        totalChecked += pillRecords.length;
+      }
+
+      final rate = totalRequired > 0 
+          ? (totalChecked / totalRequired).clamp(0.0, 1.0)
+          : 0.0;
 
       data.add({
         'date': date,

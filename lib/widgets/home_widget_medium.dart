@@ -59,29 +59,82 @@ class HomeWidgetMedium extends StatelessWidget {
       future: _getIntakeRecords(pill.id, date),
       builder: (context, snapshot) {
         final records = snapshot.data ?? [];
-        final isChecked = records.isNotEmpty;
+        final pillColor = _getColorFromHex(pill.color);
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: pillColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: pillColor.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
           child: Row(
             children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: Checkbox(
-                  value: isChecked,
-                  onChanged: (value) async {
-                    await HomeWidgetService.togglePillCheck(
-                      pill.id,
-                      value ?? false,
-                    );
-                  },
-                ),
+              // 복용횟수만큼 체크박스 생성
+              ...List.generate(
+                pill.dailyIntakeCount,
+                (index) {
+                  final intakeCount = index + 1;
+                  final isChecked = records.any(
+                    (record) => record.intakeCount == intakeCount,
+                  );
+
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: GestureDetector(
+                      onTap: () async {
+                        if (isChecked) {
+                          // 체크 해제
+                          final record = records.firstWhere(
+                            (r) => r.intakeCount == intakeCount,
+                            orElse: () => records.first,
+                          );
+                          await HomeWidgetService.togglePillCheck(
+                            pill.id,
+                            false,
+                            intakeCount: intakeCount,
+                            recordId: record.id,
+                          );
+                        } else {
+                          // 체크
+                          await HomeWidgetService.togglePillCheck(
+                            pill.id,
+                            true,
+                            intakeCount: intakeCount,
+                          );
+                        }
+                      },
+                      child: Container(
+                        width: 18,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          color: isChecked ? pillColor : Colors.transparent,
+                          border: Border.all(
+                            color: isChecked ? pillColor : Colors.grey.shade400,
+                            width: 2,
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: isChecked
+                            ? Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 12,
+                              )
+                            : null,
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 12),
               ColorFiltered(
                 colorFilter: ColorFilter.mode(
-                  _getColorFromHex(pill.color),
+                  pillColor,
                   BlendMode.srcIn,
                 ),
                 child: Image.asset(
@@ -94,7 +147,10 @@ class HomeWidgetMedium extends StatelessWidget {
               Expanded(
                 child: Text(
                   pill.name,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: pillColor.withOpacity(0.9),
+                        fontWeight: FontWeight.w500,
+                      ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

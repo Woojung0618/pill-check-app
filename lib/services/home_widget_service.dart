@@ -90,7 +90,12 @@ class HomeWidgetService {
   }
 
   /// 위젯에서 체크 상태 변경
-  static Future<void> togglePillCheck(String pillId, bool isChecked) async {
+  static Future<void> togglePillCheck(
+    String pillId,
+    bool isChecked, {
+    int? intakeCount,
+    String? recordId,
+  }) async {
     try {
       final today = DateTime.now();
       
@@ -102,7 +107,7 @@ class HomeWidgetService {
           userId: null,
           pillId: pillId,
           date: DateHelper.getDateStart(today),
-          intakeCount: 1,
+          intakeCount: intakeCount ?? 1,
           checkedAt: now,
           createdAt: now,
           isLocal: true,
@@ -110,12 +115,26 @@ class HomeWidgetService {
         await LocalStorageService.saveIntakeRecord(record);
       } else {
         // 체크 제거
-        final records = LocalStorageService.getIntakeRecordsByPillAndDate(
-          pillId,
-          today,
-        );
-        if (records.isNotEmpty) {
-          await LocalStorageService.deleteIntakeRecord(records.first.id);
+        if (recordId != null) {
+          // 특정 recordId로 삭제
+          await LocalStorageService.deleteIntakeRecord(recordId);
+        } else {
+          // intakeCount로 찾아서 삭제
+          final records = LocalStorageService.getIntakeRecordsByPillAndDate(
+            pillId,
+            today,
+          );
+          if (intakeCount != null) {
+            final record = records.firstWhere(
+              (r) => r.intakeCount == intakeCount,
+              orElse: () => records.first,
+            );
+            if (records.isNotEmpty) {
+              await LocalStorageService.deleteIntakeRecord(record.id);
+            }
+          } else if (records.isNotEmpty) {
+            await LocalStorageService.deleteIntakeRecord(records.first.id);
+          }
         }
       }
 

@@ -51,30 +51,94 @@ class HomeWidgetSmall extends StatelessWidget {
       future: _getIntakeRecords(pill.id, date),
       builder: (context, snapshot) {
         final records = snapshot.data ?? [];
-        final isChecked = records.isNotEmpty;
+        final pillColor = _getColorFromHex(pill.color);
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: pillColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(4),
+          ),
           child: Row(
             children: [
-              SizedBox(
-                width: 16,
-                height: 16,
-                child: Checkbox(
-                  value: isChecked,
-                  onChanged: (value) async {
-                    await HomeWidgetService.togglePillCheck(
-                      pill.id,
-                      value ?? false,
-                    );
-                  },
+              // 복용횟수만큼 체크박스 생성
+              ...List.generate(
+                pill.dailyIntakeCount,
+                (index) {
+                  final intakeCount = index + 1;
+                  final isChecked = records.any(
+                    (record) => record.intakeCount == intakeCount,
+                  );
+
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: GestureDetector(
+                      onTap: () async {
+                        if (isChecked) {
+                          // 체크 해제
+                          final record = records.firstWhere(
+                            (r) => r.intakeCount == intakeCount,
+                            orElse: () => records.first,
+                          );
+                          await HomeWidgetService.togglePillCheck(
+                            pill.id,
+                            false,
+                            intakeCount: intakeCount,
+                            recordId: record.id,
+                          );
+                        } else {
+                          // 체크
+                          await HomeWidgetService.togglePillCheck(
+                            pill.id,
+                            true,
+                            intakeCount: intakeCount,
+                          );
+                        }
+                      },
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: isChecked ? pillColor : Colors.transparent,
+                          border: Border.all(
+                            color: isChecked ? pillColor : Colors.grey.shade400,
+                            width: 1.5,
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: isChecked
+                            ? Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 10,
+                              )
+                            : null,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 6),
+              ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  pillColor,
+                  BlendMode.srcIn,
+                ),
+                child: Image.asset(
+                  'assets/images/icon-pill.png',
+                  width: 14,
+                  height: 14,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   pill.name,
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: pillColor.withOpacity(0.9),
+                        fontWeight: FontWeight.w500,
+                      ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -83,6 +147,14 @@ class HomeWidgetSmall extends StatelessWidget {
         );
       },
     );
+  }
+
+  Color _getColorFromHex(String hex) {
+    try {
+      return Color(int.parse(hex.substring(1), radix: 16) + 0xFF000000);
+    } catch (e) {
+      return Colors.grey;
+    }
   }
 
   Future<List<Pill>> _loadPills() async {
